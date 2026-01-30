@@ -28,3 +28,19 @@ def ranking_page(request: Request):
         "ranking.html",
         {"request": request},
     )
+
+@router.get("/", response_class=HTMLResponse)
+def home_page(request: Request):
+    return templates.TemplateResponse(
+        "home.html",
+        {"request": request},
+    )
+
+
+@router.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    return templates.TemplateResponse(
+        "register.html",
+        {"request": request},
+    )
+

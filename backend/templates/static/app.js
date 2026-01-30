@@ -124,4 +124,45 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+        /* =======================
+       REGISTER PAGE LOGIC
+       ======================= */
+    if (path === "/register") {
+        const form = document.getElementById("register-form");
+        const errorEl = document.getElementById("error");
+
+        if (!form) return;
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            errorEl.textContent = "";
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const res = await fetch("/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                if (!res.ok) {
+                    const data = await res.json();
+                    throw new Error(data.detail || "Registration failed");
+                }
+
+                // Success → go to login
+                window.location.href = "/login";
+            } catch (err) {
+                errorEl.textContent = err.message;
+            }
+        });
+
+        return;
+    }
+
+
 });
