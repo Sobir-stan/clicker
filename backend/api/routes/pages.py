@@ -13,3 +13,11 @@ def login_page(request: Request):
         "login.html",
         {"request": request},
     )
+
+
+@router.get("/clicker", response_class=HTMLResponse)
+def clicker_page(request: Request):
+    return templates.TemplateResponse(
+        "clicker.html",
+        {"request": request},
+    )

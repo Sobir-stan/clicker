@@ -5,7 +5,26 @@
     <title>Login</title>
 </head>
 <body>
-    <h1>Login Page</h1>
-    <p>If you see this, HTML serving works 🎉</p>
+    <h1>Login</h1>
+
+    <form id="login-form">
+        <label>
+            Username:
+            <input type="text" id="username" required>
+        </label>
+        <br><br>
+
+        <label>
+            Password:
+            <input type="password" id="password" required>
+        </label>
+        <br><br>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <p id="error" style="color: red;"></p>
+
+    <script src="/static/app.js"></script>
 </body>
 </html>
