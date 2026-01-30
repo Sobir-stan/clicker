@@ -1,10 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-    </head>
-    <body>
-    
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+</head>
+<body>
+    <h1>🏆 Leaderboard</h1>
+
+    <table border="1" cellpadding="8">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Username</th>
+                <th>Clicks</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+            <!-- rows inserted by JS -->
+        </tbody>
+    </table>
+
+    <br>
+    <a href="/clicker">⬅ Back to Clicker</a>
+
+    <p id="error" style="color: red;"></p>
+
+    <script src="/static/app.js"></script>
+</body>
 </html>

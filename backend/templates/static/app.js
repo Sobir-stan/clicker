@@ -92,4 +92,36 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
     }
+
+        /* =======================
+       LEADERBOARD PAGE LOGIC
+       ======================= */
+    if (path === "/ranking") {
+        const tbody = document.getElementById("leaderboard-body");
+        const errorEl = document.getElementById("error");
+
+        try {
+            const res = await fetch("/ranking/top?limit=10");
+            if (!res.ok) throw new Error("Failed to load leaderboard");
+
+            const data = await res.json();
+
+            tbody.innerHTML = "";
+
+            data.forEach((row, index) => {
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${row.username}</td>
+                    <td>${row.click_count}</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            errorEl.textContent = err.message;
+        }
+    }
+
 });

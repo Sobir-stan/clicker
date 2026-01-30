@@ -21,3 +21,10 @@ def clicker_page(request: Request):
         "clicker.html",
         {"request": request},
     )
+
+@router.get("/ranking", response_class=HTMLResponse)
+def ranking_page(request: Request):
+    return templates.TemplateResponse(
+        "ranking.html",
+        {"request": request},
+    )
