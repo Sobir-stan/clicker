@@ -14,3 +14,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+print("DEBUG SECRET_KEY:", settings.SECRET_KEY)
