@@ -138,7 +138,9 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
         if username == state.admin_username:
             await manager.send_personal_message({"type": "state_update", "state": get_admin_state()}, username)
         else:
-            await manager.send_personal_message({"type": "state_update", "state": get_user_state(username)}, username)
+            if username not in state.users:
+                state.users[username] = {"money": state.starting_money if state.game_started else 0.0, "points": 0.0}
+            await broadcast_state() # Tell admin screen about new user connection
             
         while True:
             data = await websocket.receive_text()
