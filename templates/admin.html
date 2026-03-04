@@ -20,6 +20,24 @@
             <a href="/logout" class="logout">Chiqish</a>
         </div>
 
+        <div id="livePlayersSection" class="glass-container" style="max-width: 100%; margin-bottom: 20px;">
+            <h3>Jonli o'yinchilar holati</h3>
+            <table style="margin-top: 10px;">
+                <thead>
+                    <tr>
+                        <th>O'yinchi nomi</th>
+                        <th>Joriy puli ($)</th>
+                        <th>Joriy ballari</th>
+                    </tr>
+                </thead>
+                <tbody id="livePlayersBody">
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-secondary);">Hech kim kirmagan</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <div id="setupSection" class="glass-container" style="max-width: 100%; margin-bottom: 20px;">
             <h3>O'yinni boshlash sozlamalari</h3>
             <div class="form-group">
@@ -92,23 +110,7 @@
                 </div>
             </div>
 
-            <div id="livePlayersSection" class="glass-container" style="max-width: 100%; margin-top: 30px;">
-                <h3>Jonli o'yinchilar holati</h3>
-                <table style="margin-top: 10px;">
-                    <thead>
-                        <tr>
-                            <th>O'yinchi nomi</th>
-                            <th>Joriy puli ($)</th>
-                            <th>Joriy ballari</th>
-                        </tr>
-                    </thead>
-                    <tbody id="livePlayersBody">
-                        <tr>
-                            <td colspan="3" style="text-align: center; color: var(--text-secondary);">Kutilmoqda...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+
 
             <div class="glass-container"
                 style="max-width: 100%; margin-top: 30px; text-align: center; border-color: var(--danger);">
@@ -176,6 +178,28 @@
                 return;
             }
 
+            if (state.users) {
+                const liveBody = document.getElementById('livePlayersBody');
+                liveBody.innerHTML = '';
+                const usersArr = Object.entries(state.users).map(([name, data]) => {
+                    return { name, money: data.money, points: data.points };
+                });
+
+                if (usersArr.length === 0) {
+                    liveBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Hech kim kirmagan</td></tr>';
+                } else {
+                    usersArr.forEach((user) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${user.name}</strong></td>
+                            <td style="color: var(--success);">$${user.money.toFixed(2)}</td>
+                            <td style="color: var(--warning);">${user.points.toFixed(1)}</td>
+                        `;
+                        liveBody.appendChild(tr);
+                    });
+                }
+            }
+
             if (state.game_started) {
                 document.getElementById('setupSection').classList.add('hidden');
                 document.getElementById('activeGameSection').classList.remove('hidden');
@@ -183,27 +207,7 @@
                 document.getElementById('statusText').textContent = "Davom etmoqda";
                 document.getElementById('statusText').style.color = "var(--success)";
 
-                if (state.users) {
-                    const liveBody = document.getElementById('livePlayersBody');
-                    liveBody.innerHTML = '';
-                    const usersArr = Object.entries(state.users).map(([name, data]) => {
-                        return { name, money: data.money, points: data.points };
-                    });
 
-                    if (usersArr.length === 0) {
-                        liveBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Hech kim kirmagan</td></tr>';
-                    } else {
-                        usersArr.forEach((user) => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td><strong>${user.name}</strong></td>
-                                <td style="color: var(--success);">$${user.money.toFixed(2)}</td>
-                                <td style="color: var(--warning);">${user.points.toFixed(1)}</td>
-                            `;
-                            liveBody.appendChild(tr);
-                        });
-                    }
-                }
 
                 if (state.current_lot) {
                     if (state.current_lot.closed) {
