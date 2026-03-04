@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auksion O'yini</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <script>window.username = "{{ username }}";</script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div class="header-bar">
+            <h2>O'yinchi: <span style="color: var(--text-primary);">{{ username }}</span></h2>
+            <div class="header-stats">
+                <div>Pul: $<span id="playerMoney" style="color: var(--success);">0</span></div>
+            </div>
+            <a href="/logout" class="logout">Chiqish</a>
+        </div>
+
+        <div id="waitingScreen" class="glass-container"
+            style="max-width: 600px; margin: 50px auto; text-align: center;">
+            <div class="lot-icon">⏳</div>
+            <h2>Kuting...</h2>
+            <p style="color: var(--text-secondary);" id="waitingText">Admin o'yinni boshlashini kutyapmiz.</p>
+        </div>
+
+        <div id="biddingScreen" class="hidden">
+            <div class="grid">
+                <div class="card" style="text-align: center;">
+                    <h3 id="itemName"></h3>
+                    <div class="lot-icon" id="itemIcon"></div>
+
+                    <div class="stats" style="margin-top: 20px;">
+                        <div>Hozirgi eng yuqori taklif:</div>
+                        <div style="font-size: 1.5rem;">$<span id="currentBid" style="color: var(--success);">0</span>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 20px;">
+                        Taklif qilgan: <span id="currentBidder" style="font-weight: bold;">Yo'q</span>
+                    </div>
+
+                    <div id="closedMessage" class="hidden">
+                        <h3 style="color: var(--danger); margin-bottom: 20px;">Lot yopildi</h3>
+                        <div class="winner-text" id="winnerText"></div>
+                    </div>
+                </div>
+
+                <div class="card" id="biddingInterface">
+                    <h3>O'z taklifingizni bildiring</h3>
+                    <p style="margin-bottom: 20px; color: var(--text-secondary); text-align: center;">Quyidagi narxdan
+                        yuqori bo'lishi kerak: $<span id="minBidReq">0</span></p>
+
+                    <div
+                        style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center;">
+                        <button class="btn" style="width: auto; padding: 10px 20px;" onclick="addBid(10)">+$10</button>
+                        <button class="btn" style="width: auto; padding: 10px 20px;" onclick="addBid(50)">+$50</button>
+                        <button class="btn" style="width: auto; padding: 10px 20px;"
+                            onclick="addBid(100)">+$100</button>
+                        <button class="btn" style="width: auto; padding: 10px 20px; background: var(--warning);"
+                            onclick="maxBid()">MAX</button>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="customBid" placeholder="Miqdorni kiriting">
+                            <button class="btn btn-success" style="width: 120px;" onclick="submitBid()">Taklif
+                                qilish</button>
+                        </div>
+                        <div id="bidError"
+                            style="color: var(--danger); font-size: 0.9rem; margin-top: 10px; text-align: center;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="summaryScreen" class="hidden glass-container" style="max-width: 800px; margin: 0 auto;">
+            <h2>O'yin tugadi</h2>
+            <div class="stats" style="justify-content: center; gap: 20px; font-size: 1.5rem; margin: 30px 0;">
+                <div>Sizning yakuniy ballaringiz: <span id="myFinalPoints" style="color: var(--warning);">0</span></div>
+            </div>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">Qolgan pullar ballarga
+                aylanadi (1$ = 0.1 ball)</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>O'rin</th>
+                        <th>O'yinchi</th>
+                        <th>Yakuniy ballar</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        let myMoney = 0;
+        let currentHighest = 0;
+
+        function updateUI(state) {
+            myMoney = state.money;
+            document.getElementById('playerMoney').textContent = state.money.toFixed(2);
+
+            if (state.game_ended) {
+                document.getElementById('waitingScreen').classList.add('hidden');
+                document.getElementById('biddingScreen').classList.add('hidden');
+                document.getElementById('summaryScreen').classList.remove('hidden');
+
+                document.getElementById('myFinalPoints').textContent = state.points.toFixed(1);
+
+                if (state.users) {
+                    const tbody = document.getElementById('leaderboard');
+                    tbody.innerHTML = '';
+                    const usersArr = Object.entries(state.users).map(([name, data]) => {
+                        return { name, points: data.points };
+                    });
+                    usersArr.sort((a, b) => b.points - a.points);
+
+                    usersArr.forEach((user, index) => {
+                        const tr = document.createElement('tr');
+                        const isMe = user.name === window.username;
+                        tr.style.background = isMe ? "rgba(90, 141, 238, 0.15)" : "transparent";
+
+                        tr.innerHTML = `
+                            <td>#${index + 1}</td>
+                            <td><strong>${user.name}</strong> ${isMe ? '(Siz)' : ''}</td>
+                            <td style="color: var(--warning); font-weight: bold;">${user.points.toFixed(1)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+                return;
+            }
+
+            if (!state.game_started) {
+                document.getElementById('waitingScreen').classList.remove('hidden');
+                document.getElementById('biddingScreen').classList.add('hidden');
+                document.getElementById('summaryScreen').classList.add('hidden');
+                document.getElementById('waitingText').textContent = "Admin o'yinni boshlashini kutyapmiz.";
+                return;
+            }
+
+            if (!state.current_lot) {
+                document.getElementById('waitingScreen').classList.remove('hidden');
+                document.getElementById('biddingScreen').classList.add('hidden');
+                document.getElementById('summaryScreen').classList.add('hidden');
+                document.getElementById('waitingText').textContent = "Admin keyingi lotni yaratishini kutyapmiz...";
+                return;
+            }
+
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('biddingScreen').classList.remove('hidden');
+            document.getElementById('summaryScreen').classList.add('hidden');
+
+            const lot = state.current_lot;
+            currentHighest = lot.highest_bid;
+
+            document.getElementById('itemName').textContent = lot.name;
+            document.getElementById('itemIcon').textContent = lot.icon;
+            document.getElementById('currentBid').textContent = lot.highest_bid.toFixed(2);
+            document.getElementById('currentBidder').textContent = lot.highest_bidder ?
+                (lot.highest_bidder === window.username ? 'Siz' : lot.highest_bidder) : "Yo'q";
+            document.getElementById('minBidReq').textContent = lot.highest_bid.toFixed(2);
+
+            if (lot.highest_bidder === window.username) {
+                document.getElementById('currentBidder').style.color = 'var(--accent-hover)';
+            } else {
+                document.getElementById('currentBidder').style.color = 'var(--text-primary)';
+            }
+
+            const customBidInput = document.getElementById('customBid');
+            if (!customBidInput.value || parseFloat(customBidInput.value) <= lot.highest_bid) {
+                customBidInput.value = lot.highest_bid + 10;
+            }
+
+            if (lot.closed) {
+                document.getElementById('biddingInterface').classList.add('hidden');
+                document.getElementById('closedMessage').classList.remove('hidden');
+
+                if (lot.highest_bidder === window.username) {
+                    document.getElementById('winnerText').textContent = "Siz bu lotni yutib oldingiz!";
+                } else if (lot.highest_bidder) {
+                    document.getElementById('winnerText').textContent = `${lot.highest_bidder} lotni $${lot.highest_bid.toFixed(2)} ga yutib oldi`;
+                } else {
+                    document.getElementById('winnerText').textContent = "Bu buyumga hech kim taklif qilmadi.";
+                }
+            } else {
+                document.getElementById('biddingInterface').classList.remove('hidden');
+                document.getElementById('closedMessage').classList.add('hidden');
+            }
+        }
+
+        function addBid(amount) {
+            const input = document.getElementById('customBid');
+            let current = parseFloat(input.value) || currentHighest;
+            if (current < currentHighest) current = currentHighest;
+            input.value = current + amount;
+        }
+
+        function maxBid() {
+            document.getElementById('customBid').value = myMoney;
+        }
+
+        function submitBid() {
+            const amount = parseFloat(document.getElementById('customBid').value);
+            const errorDiv = document.getElementById('bidError');
+
+            if (isNaN(amount) || amount <= currentHighest) {
+                errorDiv.textContent = `Taklif $${currentHighest} dan yuqori bo'lishi kerak`;
+                return;
+            }
+            if (amount > myMoney) {
+                errorDiv.textContent = `Pulingiz yetarli emas. Maksimal taklif: $${myMoney}`;
+                return;
+            }
+
+            errorDiv.textContent = '';
+            sendAction('bid', { amount });
+        }
+    </script>
+</body>
+
+</html>

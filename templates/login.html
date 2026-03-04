@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auksion O'yini</title>
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+
+<body>
+    <div class="center-wrapper">
+        <div class="glass-container">
+            <h1>Auksion O'yini</h1>
+
+            <form action="/login" method="post" id="loginForm">
+                <div class="form-group">
+                    <label for="username">Foydalanuvchi nomi</label>
+                    <input type="text" id="username" name="username" required autocomplete="off"
+                        placeholder="Nomni kiriting">
+                </div>
+
+                <div class="form-group hidden" id="passwordGroup">
+                    <label for="password">Admin paroli</label>
+                    <input type="password" id="password" name="password" placeholder="Admin parolini kiriting">
+                </div>
+
+                <button type="submit" class="btn">O'yinga kirish</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const usernameInput = document.getElementById('username');
+        const passwordGroup = document.getElementById('passwordGroup');
+        const passwordInput = document.getElementById('password');
+
+        usernameInput.addEventListener('input', (e) => {
+            if (e.target.value.toLowerCase() === 'admin') {
+                passwordGroup.classList.remove('hidden');
+                passwordInput.required = true;
+            } else {
+                passwordGroup.classList.add('hidden');
+                passwordInput.required = false;
+                passwordInput.value = '';
+            }
+        });
+    </script>
+</body>
+
+</html>

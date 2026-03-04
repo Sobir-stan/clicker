@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Paneli - Auksion O'yini</title>
+    <link rel="stylesheet" href="/static/index.css">
+    <script>window.username = "admin";</script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div class="header-bar">
+            <h2>Admin Paneli</h2>
+            <div class="header-stats">
+                <div id="gameStatus">Holati: <span id="statusText">Kutilmoqda</span></div>
+                <div>O'yinchilar: <span id="playerCount">0</span></div>
+            </div>
+            <a href="/logout" class="logout">Chiqish</a>
+        </div>
+
+        <div id="setupSection" class="glass-container" style="max-width: 100%; margin-bottom: 20px;">
+            <h3>O'yinni boshlash sozlamalari</h3>
+            <div class="form-group">
+                <label>Barcha o'yinchilar uchun boshlang'ich pul ($)</label>
+                <input type="number" id="startMoney" value="1000" min="0">
+            </div>
+            <button class="btn btn-success" onclick="startGame()">O'yinni boshlash</button>
+        </div>
+
+        <div id="activeGameSection" class="hidden">
+            <div class="grid">
+                <!-- Create Lot Form -->
+                <div class="card" id="createLotSection">
+                    <h3>Yangi Lot Yaratish</h3>
+                    <div class="form-group">
+                        <label>Buyum nomi</label>
+                        <input type="text" id="itemName" placeholder="Masalan, Yashil Uy">
+                    </div>
+                    <div class="form-group">
+                        <label>Boshlang'ich narx ($)</label>
+                        <input type="number" id="itemPrice" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Ballar qiymati</label>
+                        <input type="number" id="itemPoints" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Buyum ikonkasii</label>
+                        <select id="itemIcon">
+                            <option value="🏠">🏠 Yashil bitta uy</option>
+                            <option value="🏨">🏨 Qizil ikkita uy</option>
+                            <option value="🐕">🐕 Kuchuk</option>
+                            <option value="👞">👞 Poyabzal</option>
+                            <option value="🚗">🚗 Mashina</option>
+                            <option value="🎩">🎩 Shlyapa</option>
+                            <option value="🛒">🛒 Aravacha</option>
+                            <option value="🏇">🏇 Chavandoz</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="createLot()">Lotni e'lon qilish</button>
+                </div>
+
+                <!-- Current Lot Status -->
+                <div class="card" id="currentLotStatus">
+                    <h3>Faol Lot</h3>
+                    <div id="noActiveLot" style="text-align: center; color: var(--text-secondary); margin-top: 50px;">
+                        Hozircha faol lot yo'q. Yangi yarating!
+                    </div>
+
+                    <div id="activeLotInfo" class="hidden">
+                        <div class="lot-icon" id="lotIcon"></div>
+                        <h2 id="lotName"></h2>
+                        <div class="stats">
+                            <div>Eng yuqori taklif: $<span id="lotBid">0</span></div>
+                            <div>Taklif qiluvchi: <span id="lotBidder">Yo'q</span></div>
+                        </div>
+                        <div class="stats" style="border: none; margin-bottom: 20px;">
+                            <div>Ballar qiymati: <span id="lotPointsVal" style="color: var(--warning);"></span></div>
+                        </div>
+                        <button class="btn btn-warning" id="closeLotBtn" onclick="closeLot()">Lotni yopish</button>
+                    </div>
+
+                    <div id="closedLotInfo" class="hidden">
+                        <h3 style="color: var(--success); text-align: center;">Lot yopildi!</h3>
+                        <div class="winner-text" id="winnerAnnouncement"></div>
+                        <button class="btn"
+                            onclick="document.getElementById('closedLotInfo').classList.add('hidden'); document.getElementById('createLotSection').classList.remove('hidden');"
+                            style="margin-top: 20px;">Keyingi lot</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="livePlayersSection" class="glass-container" style="max-width: 100%; margin-top: 30px;">
+                <h3>Jonli o'yinchilar holati</h3>
+                <table style="margin-top: 10px;">
+                    <thead>
+                        <tr>
+                            <th>O'yinchi nomi</th>
+                            <th>Joriy puli ($)</th>
+                            <th>Joriy ballari</th>
+                        </tr>
+                    </thead>
+                    <tbody id="livePlayersBody">
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: var(--text-secondary);">Kutilmoqda...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="glass-container"
+                style="max-width: 100%; margin-top: 30px; text-align: center; border-color: var(--danger);">
+                <h3 style="color: var(--danger);">O'yinni tugatish sozlamalari</h3>
+                <div class="form-group" style="max-width: 300px; margin: 0 auto; text-align: left;">
+                    <label>Puldan ballga ta'rifi (1$ = ? ball)</label>
+                    <input type="number" id="exchangeRate" value="0.1" step="0.01" min="0">
+                </div>
+                <button class="btn btn-danger" style="max-width: 300px; margin-top: 15px;" onclick="endGame()">O'yinni
+                    tugatish va Natijalarni ko'rish</button>
+            </div>
+        </div>
+
+        <div id="endGameSection" class="hidden glass-container" style="max-width: 800px; margin: 0 auto;">
+            <h2>O'yin tugadi</h2>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">Qolgan pullar ballarga
+                aylanadi (1$ = 0.1 ball)</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>O'rin</th>
+                        <th>O'yinchi</th>
+                        <th>Yakuniy ballar</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard">
+                </tbody>
+            </table>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn" onclick="resetGame()">Yangi o'yin boshlash</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        function updateUI(state) {
+            document.getElementById('playerCount').textContent = Object.keys(state.users).length;
+
+            if (state.game_ended) {
+                document.getElementById('setupSection').classList.add('hidden');
+                document.getElementById('activeGameSection').classList.add('hidden');
+                document.getElementById('endGameSection').classList.remove('hidden');
+                document.getElementById('statusText').textContent = "Tugadi";
+                document.getElementById('statusText').style.color = "var(--danger)";
+
+                const usersArr = Object.entries(state.users).map(([name, data]) => {
+                    return { name, points: data.points };
+                });
+                usersArr.sort((a, b) => b.points - a.points);
+
+                const tbody = document.getElementById('leaderboard');
+                tbody.innerHTML = '';
+                usersArr.forEach((user, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>#${index + 1}</td>
+                        <td><strong>${user.name}</strong></td>
+                        <td style="color: var(--warning); font-weight: bold;">${user.points.toFixed(1)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                return;
+            }
+
+            if (state.game_started) {
+                document.getElementById('setupSection').classList.add('hidden');
+                document.getElementById('activeGameSection').classList.remove('hidden');
+                document.getElementById('endGameSection').classList.add('hidden');
+                document.getElementById('statusText').textContent = "Davom etmoqda";
+                document.getElementById('statusText').style.color = "var(--success)";
+
+                if (state.users) {
+                    const liveBody = document.getElementById('livePlayersBody');
+                    liveBody.innerHTML = '';
+                    const usersArr = Object.entries(state.users).map(([name, data]) => {
+                        return { name, money: data.money, points: data.points };
+                    });
+
+                    if (usersArr.length === 0) {
+                        liveBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Hech kim kirmagan</td></tr>';
+                    } else {
+                        usersArr.forEach((user) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><strong>${user.name}</strong></td>
+                                <td style="color: var(--success);">$${user.money.toFixed(2)}</td>
+                                <td style="color: var(--warning);">${user.points.toFixed(1)}</td>
+                            `;
+                            liveBody.appendChild(tr);
+                        });
+                    }
+                }
+
+                if (state.current_lot) {
+                    if (state.current_lot.closed) {
+                        document.getElementById('activeLotInfo').classList.add('hidden');
+                        document.getElementById('createLotSection').classList.add('hidden');
+                        document.getElementById('closedLotInfo').classList.remove('hidden');
+                        document.getElementById('noActiveLot').classList.add('hidden');
+
+                        const winner = state.current_lot.highest_bidder;
+                        const amt = state.current_lot.highest_bid;
+                        if (winner) {
+                            document.getElementById('winnerAnnouncement').textContent = `${winner} bu lotni $${amt} ga yutib oldi!`;
+                        } else {
+                            document.getElementById('winnerAnnouncement').textContent = `Hech qanday taklif tushmadi.`;
+                        }
+                    } else {
+                        document.getElementById('noActiveLot').classList.add('hidden');
+                        document.getElementById('activeLotInfo').classList.remove('hidden');
+                        document.getElementById('createLotSection').classList.add('hidden');
+                        document.getElementById('closedLotInfo').classList.add('hidden');
+
+                        document.getElementById('lotIcon').textContent = state.current_lot.icon;
+                        document.getElementById('lotName').textContent = state.current_lot.name;
+                        document.getElementById('lotBid').textContent = state.current_lot.highest_bid;
+                        document.getElementById('lotBidder').textContent = state.current_lot.highest_bidder || "Yo'q";
+                        document.getElementById('lotPointsVal').textContent = state.current_lot.points;
+                    }
+                } else {
+                    document.getElementById('noActiveLot').classList.remove('hidden');
+                    document.getElementById('activeLotInfo').classList.add('hidden');
+                    document.getElementById('createLotSection').classList.remove('hidden');
+                    document.getElementById('closedLotInfo').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('setupSection').classList.remove('hidden');
+                document.getElementById('activeGameSection').classList.add('hidden');
+                document.getElementById('endGameSection').classList.add('hidden');
+                document.getElementById('statusText').textContent = "Kutilmoqda";
+                document.getElementById('statusText').style.color = "var(--text-secondary)";
+            }
+        }
+
+        function startGame() {
+            const money = document.getElementById('startMoney').value;
+            sendAction('start_game', { money });
+        }
+
+        function createLot() {
+            const name = document.getElementById('itemName').value;
+            const price = document.getElementById('itemPrice').value;
+            const points = document.getElementById('itemPoints').value;
+            const icon = document.getElementById('itemIcon').value;
+
+            if (!name || !price || !points) {
+                alert("Iltimos, barcha maydonlarni to'ldiring");
+                return;
+            }
+
+            sendAction('create_lot', { name, price, points, icon });
+
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemPoints').value = '';
+        }
+
+        function closeLot() {
+            sendAction('close_lot');
+        }
+
+        function endGame() {
+            const exchangeRate = document.getElementById('exchangeRate').value;
+            if (confirm("Haqiqatan ham o'yinni tugatishni xohlaysizmi? Qolgan pullar ko'rsatilgan ta'rif bo'yicha ballarga aylanadi.")) {
+                sendAction('end_game', { exchange_rate: exchangeRate });
+            }
+        }
+
+        function resetGame() {
+            sendAction('reset_game');
+        }
+    </script>
+</body>
+
+</html>
